@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="makebuilderapkproject" default="build">
+
+    <property file="build.properties" />
+
+    <property name="proguard.jar" location="proguard/proguard.jar" />
+    <!--<taskdef classpath="${proguard.jar}" resource="proguard/ant/task.properties" />-->
+
+    <!--<proguard configuration="proguard-rules.pro" skipnonpubliclibraryclasses="false">-->
+    <!--<injar name="${jar.dist.dir}/${jar.lib.name}" />-->
+    <!--<outjar name="${jar.dist.dir}/proguard_${jar.lib.name}" />-->
+    <!--</proguard>-->
+
+    <target name="clean">
+        <delete dir="${jar.dist.dir}" />
+        <delete dir="${class.build.dir}" />
+    </target>
+
+    <path id="compile.classpath">
+        <fileset dir="${jar.lib.dir}/">
+            <include name="*.jar" />
+        </fileset>
+        <fileset dir="${jar.jarlib.dir}/">
+            <include name="*.jar" />
+            <include name="*.keystore" />
+        </fileset>
+    </path>
+
+
+    <target name="compile" depends="clean">
+        <mkdir dir="${class.build.dir}/classes" />
+
+        <javac destdir="${class.build.dir}/classes" encoding="UTF-8" includeantruntime="false"
+            source="${java.source}" srcdir="${src.dir}" target="${java.target}" verbose="no">
+            <classpath refid="compile.classpath" />
+        </javac>
+    </target>
+
+    <target name="buildjar" depends="copybuild">
+        <mkdir dir="${jar.dist.dir}" />
+        <jar basedir="${class.build.dir}/classes" destfile="${jar.dist.dir}/${jar.lib.name}">
+            <zipgroupfileset dir="${jar.lib.dir}" includes="**/*" />
+            <manifest>
+                <attribute name="Main-Class" value="${mainclass.name}" />
+            </manifest>
+            <fileset dir="${class.build.dir}/importlib">
+                <include name="**/*.jar" />
+                <include name="**/*.keystore" />
+            </fileset>
+        </jar>
+    </target>
+
+    <patternset id="import_files">
+        <include name="**/*.jar" />
+    </patternset>
+
+    <target name="copybuild" depends="compile">
+        <mkdir dir="${class.build.dir}/importlib/lib" />
+        <copy todir="${class.build.dir}/importlib/lib">
+            <fileset dir="${jar.jarlib.dir}">
+                <include name="**/*.jar" />
+                <include name="**/*.keystore" />
+            </fileset>
+        </copy>
+
+    </target>
+
+    <target name="build" depends="buildjar">
+
+    </target>
+
+    <target name="p">
+        <taskdef classpath="proguard/proguard.jar" resource="proguard/ant/task.properties" />
+        <proguard configuration="proguard-rules.pro">
+            <injar name="${jar.dist.dir}/${jar.lib.name}" />
+            <outjar name="${jar.dist.dir}/proguard_${jar.lib.name}" />
+        </proguard>
+    </target>
+
+</project>
